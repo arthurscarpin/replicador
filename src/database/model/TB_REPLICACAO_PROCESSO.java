@@ -51,11 +51,12 @@ public class TB_REPLICACAO_PROCESSO {
 
     @Override
     public String toString() {
-        return "TB_REPLICACAO_PROCESSO{" +
-                "id=" + id +
-                ", processo='" + processo + '\'' +
-                ", descricao='" + descricao + '\'' +
-                ", habilitado=" + habilitado +
-                '}';
+        return """
+                TB_REPLICACAO_PROCESSO{
+                  id=%s,
+                  processo='%s',
+                  descricao='%s',
+                  habilitado=%s
+                }""".formatted(id, processo, descricao, habilitado);
     }
 }

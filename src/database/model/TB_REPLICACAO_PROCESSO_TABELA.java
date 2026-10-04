@@ -13,7 +13,15 @@ public class TB_REPLICACAO_PROCESSO_TABELA {
     public TB_REPLICACAO_PROCESSO_TABELA() {
     }
 
-    public TB_REPLICACAO_PROCESSO_TABELA(long id, long processo_id, String tabela_origem, String tabela_destino, int ordem, boolean habilitado, String ds_where) {
+    public TB_REPLICACAO_PROCESSO_TABELA(
+            long id,
+            long processo_id,
+            String tabela_origem,
+            String tabela_destino,
+            int ordem,
+            boolean habilitado,
+            String ds_where
+    ) {
         this.id = id;
         this.processo_id = processo_id;
         this.tabela_origem = tabela_origem;
@@ -81,14 +89,15 @@ public class TB_REPLICACAO_PROCESSO_TABELA {
 
     @Override
     public String toString() {
-        return "TB_REPLICACAO_PROCESSO_TABELA{" +
-                "id=" + id +
-                ", processo_id=" + processo_id +
-                ", tabela_origem='" + tabela_origem + '\'' +
-                ", tabela_destino='" + tabela_destino + '\'' +
-                ", ordem=" + ordem +
-                ", habilitado=" + habilitado +
-                ", ds_where='" + ds_where + '\'' +
-                '}';
+        return """
+                TB_REPLICACAO_PROCESSO_TABELA{
+                  id=%s,
+                  processo_id=%s,
+                  tabela_origem='%s',
+                  tabela_destino='%s',
+                  ordem=%s,
+                  habilitado=%s,
+                  ds_where='%s'
+                }""".formatted(id, processo_id, tabela_origem, tabela_destino, ordem, habilitado, ds_where);
     }
 }

@@ -15,7 +15,17 @@ public class TB_REPLICACAO_DIRECAO {
     public TB_REPLICACAO_DIRECAO() {
     }
 
-    public TB_REPLICACAO_DIRECAO(long id, String direcao_origem, String direcao_destino, String usuario_origem, String usuario_destino, String senha_origem, String senha_destino, boolean habilitado, long processo_id) {
+    public TB_REPLICACAO_DIRECAO(
+            long id,
+            String direcao_origem,
+            String direcao_destino,
+            String usuario_origem,
+            String usuario_destino,
+            String senha_origem,
+            String senha_destino,
+            boolean habilitado,
+            long processo_id
+    ) {
         this.id = id;
         this.direcao_origem = direcao_origem;
         this.direcao_destino = direcao_destino;
@@ -101,16 +111,27 @@ public class TB_REPLICACAO_DIRECAO {
 
     @Override
     public String toString() {
-        return "TB_REPLICACAO_DIRECAO{" +
-                "id=" + id +
-                ", direcao_origem='" + direcao_origem + '\'' +
-                ", direcao_destino='" + direcao_destino + '\'' +
-                ", usuario_origem='" + usuario_origem + '\'' +
-                ", usuario_destino='" + usuario_destino + '\'' +
-                ", senha_origem='" + senha_origem + '\'' +
-                ", senha_destino='" + senha_destino + '\'' +
-                ", habilitado=" + habilitado +
-                ", processo_id=" + processo_id +
-                '}';
+        return """
+                TB_REPLICACAO_DIRECAO{
+                  id=%s,
+                  direcao_origem='%s',
+                  direcao_destino='%s',
+                  usuario_origem='%s',
+                  usuario_destino='%s',
+                  senha_origem='%s',
+                  senha_destino='%s',
+                  habilitado=%s,
+                  processo_id=%s
+                }""".formatted(
+                id,
+                direcao_origem,
+                direcao_destino,
+                usuario_origem,
+                usuario_destino,
+                senha_origem,
+                senha_destino,
+                habilitado,
+                processo_id
+        );
     }
 }
