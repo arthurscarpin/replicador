@@ -16,9 +16,19 @@ public class ReplicacaoProcessoDAO {
 
     private static final String SQL_SELECT_BY_ID = "SELECT * FROM tb_replicacao_processo WHERE id = ?";
 
-    private static final String SQL_INSERT = "INSERT INTO tb_replicacao_processo (processo, descricao, habilitado) VALUES (?, ?, ?)";
+    private static final String SQL_INSERT = """
+        INSERT INTO tb_replicacao_processo (
+            processo, 
+            descricao, 
+            habilitado
+        ) VALUES (?, ?, ?)
+        """;
 
-    private static final String SQL_UPDATE = "UPDATE tb_replicacao_processo SET processo = ?, descricao = ?, habilitado = ? WHERE id = ?";
+    private static final String SQL_UPDATE = """
+        UPDATE tb_replicacao_processo 
+        SET processo = ?, descricao = ?, habilitado = ? 
+        WHERE id = ?
+        """;
 
     private static final String SQL_DELETE = "DELETE FROM tb_replicacao_processo WHERE id = ?";
 
