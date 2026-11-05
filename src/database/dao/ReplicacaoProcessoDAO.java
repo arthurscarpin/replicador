@@ -79,7 +79,7 @@ public class ReplicacaoProcessoDAO {
         pstUpdate.executeUpdate();
     }
 
-    public void delete(int id) throws SQLException {
+    public void delete(long id) throws SQLException {
         pstDelete.setLong(1, id);
         pstDelete.executeUpdate();
     }

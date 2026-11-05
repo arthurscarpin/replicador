@@ -1,9 +1,20 @@
 package view;
 
+import database.dao.ReplicacaoProcessoDAO;
+import database.model.TB_REPLICACAO_PROCESSO;
+
 import javax.swing.*;
 import java.awt.*;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 public class TelaReplicacaoProcessoView extends JFrame {
+
+    private enum ModoTela {NENHUM, INSERT, UPDATE}
+    private ModoTela modoTela = ModoTela.NENHUM;
+
+    private final Connection conn;
+    private final ReplicacaoProcessoDAO dao;
 
     private JTextField txfId;
     private JTextField txfProcesso;
@@ -16,7 +27,10 @@ public class TelaReplicacaoProcessoView extends JFrame {
     private JButton btnBuscar;
     private JButton btnExcluir;
 
-    public TelaReplicacaoProcessoView() {
+    public TelaReplicacaoProcessoView(Connection conn) throws SQLException {
+        this.conn = conn;
+        this.dao = new ReplicacaoProcessoDAO(conn);
+
         setTitle("Cadastro de Processos");
         setSize(620, 320);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -66,9 +80,113 @@ public class TelaReplicacaoProcessoView extends JFrame {
         chkHabilitado = new JCheckBox("HABILITADO:");
         chkHabilitado.setBounds(10, 175, 120, 25);
         getContentPane().add(chkHabilitado);
-    }
 
-    static void main() {
-        SwingUtilities.invokeLater(() -> new TelaReplicacaoProcessoView().setVisible(true));
+        txfId.setEnabled(false);
+        txfProcesso.setEnabled(false);
+        txfDescricao.setEnabled(false);
+        chkHabilitado.setSelected(false);
+        btnSavar.setEnabled(false);
+        btnExcluir.setEnabled(false);
+
+        btnAdicionar.addActionListener(
+                e -> {
+                    modoTela = ModoTela.INSERT;
+
+                    txfId.setText("");
+                    txfProcesso.setText("");
+                    txfDescricao.setText("");
+                    chkHabilitado.setSelected(true);
+
+                    txfId.setEnabled(true);
+                    txfProcesso.setEnabled(true);
+                    txfDescricao.setEnabled(true);
+                    chkHabilitado.setEnabled(false);
+                    btnSavar.setEnabled(true);
+                    btnExcluir.setEnabled(false);
+                }
+        );
+
+        btnSavar.addActionListener(
+                e -> {
+                    try {
+                        if (txfProcesso.getText().trim().isEmpty()) {
+                            JOptionPane.showMessageDialog(null, "Informe o processo.");
+                            return;
+                        }
+
+                        TB_REPLICACAO_PROCESSO p = new TB_REPLICACAO_PROCESSO();
+                        p.setProcesso(txfProcesso.getText().trim());
+                        p.setDescricao(txfDescricao.getText().trim());
+                        p.setHabilitado(chkHabilitado.isSelected());
+
+                        if (modoTela == ModoTela.INSERT) {
+                            dao.insert(p);
+                            JOptionPane.showMessageDialog(this, "Processo inserido com sucesso.");
+                        } else if (modoTela == ModoTela.UPDATE) {
+                            if (txfId.getText().trim().isEmpty()) {
+                                JOptionPane.showMessageDialog(this, "Informe o ID do processo a ser atualizado.");
+                                return;
+                            }
+                            p.setId(Integer.parseInt(txfId.getText().trim()));
+                            dao.update(p);
+                            JOptionPane.showMessageDialog(this, "Processo atualizado com sucesso.");
+                        } else {
+                            JOptionPane.showMessageDialog(this, "Clique em ADICIONAR ou BUSCAR para iniciar uma operação.");
+                            return;
+                        }
+
+                        modoTela = ModoTela.NENHUM;
+                        txfProcesso.setEnabled(false);
+                        txfDescricao.setEnabled(false);
+                        chkHabilitado.setEnabled(false);
+                        btnSavar.setEnabled(false);
+
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        JOptionPane.showMessageDialog(this, "Erro ao salvar: " + ex.getMessage());
+                    }
+                }
+        );
+
+        btnExcluir.addActionListener(
+                e -> {
+                    try {
+                        if (txfId.getText().trim().isEmpty()) {
+                            JOptionPane.showMessageDialog(this, "Informe o ID do processo a ser excluído.");
+                            return;
+                        }
+
+                        int op = JOptionPane.showConfirmDialog(this, "Deseja realmente excluir o processo?", "Confirmar Exclusão", JOptionPane.YES_NO_OPTION);
+
+                        if (op != JOptionPane.YES_OPTION) return;
+
+                        long id = Long.parseLong(txfId.getText().trim());
+                        dao.delete(id);
+                        JOptionPane.showMessageDialog(this, "Processo excluído com sucesso.");
+
+                        modoTela = ModoTela.NENHUM;
+                        txfId.setText("");
+                        txfProcesso.setText("");
+                        txfDescricao.setText("");
+                        chkHabilitado.setSelected(false);
+
+                        txfProcesso.setEnabled(false);
+                        txfDescricao.setEnabled(false);
+                        chkHabilitado.setEnabled(false);
+                        btnSavar.setEnabled(false);
+                        btnExcluir.setEnabled(false);
+
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        JOptionPane.showMessageDialog(this, "Erro ao excluir: " + ex.getMessage());
+                    }
+                }
+        );
+
+        btnBuscar.addActionListener(
+                e -> {
+                    modoTela = ModoTela.UPDATE;
+                }
+        );
     }
 }
