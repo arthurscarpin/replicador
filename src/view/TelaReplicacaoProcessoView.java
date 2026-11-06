@@ -184,8 +184,28 @@ public class TelaReplicacaoProcessoView extends JFrame {
         );
 
         btnBuscar.addActionListener(
-                e -> {
-                    modoTela = ModoTela.UPDATE;
+                b -> {
+                    try {
+                        ConsultaProcessoDialog dialog = new ConsultaProcessoDialog(this, dao);
+                        dialog.setVisible(true);
+                        TB_REPLICACAO_PROCESSO selecionado = dialog.getSelecionado();
+
+                        if (selecionado == null) return;
+
+                        txfId.setText(String.valueOf(selecionado.getId()));
+                        txfProcesso.setText(selecionado.getProcesso());
+                        txfDescricao.setText(selecionado.getDescricao());
+                        chkHabilitado.setSelected(selecionado.isHabilitado());
+
+                        txfProcesso.setEnabled(true);
+                        txfDescricao.setEnabled(true);
+                        chkHabilitado.setEnabled(true);
+                        btnSavar.setEnabled(true);
+                        btnExcluir.setEnabled(true);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        JOptionPane.showMessageDialog(this, "Erro ao buscar: " + ex.getMessage());
+                    }
                 }
         );
     }
