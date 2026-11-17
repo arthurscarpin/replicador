@@ -70,8 +70,8 @@ public class DirecaoDAO {
         return lista;
     }
 
-    public TB_REPLICACAO_DIRECAO selectById(int id) throws SQLException {
-        pstSelectById.setInt(1, id);
+    public TB_REPLICACAO_DIRECAO selectById(long id) throws SQLException {
+        pstSelectById.setLong(1, id);
         try (ResultSet rs = pstSelectById.executeQuery()) {
             return rs.next() ? map(rs) : null;
         }
