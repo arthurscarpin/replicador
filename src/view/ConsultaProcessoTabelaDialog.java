@@ -69,6 +69,8 @@ public class ConsultaProcessoTabelaDialog extends JDialog {
                 return;
             }
             long id = Long.parseLong(table.getValueAt(row, 0).toString());
+            TB_REPLICACAO_PROCESSO_TABELA t = null;
+
             try {
                 t = dao.selectById(id);
             } catch (Exception ex) {
