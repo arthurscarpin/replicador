@@ -50,7 +50,7 @@ public class DirecaoDAO {
     private PreparedStatement pstUpdate;
     private PreparedStatement pstDelete;
 
-    public DirecaoDAO(Connection conn) throws Exception {
+    public DirecaoDAO(Connection conn) throws SQLException {
         this.conn = conn;
         this.pstSelectAll = conn.prepareStatement(SQL_SELECT_ALL);
         this.pstSelectById = conn.prepareStatement(SQL_SELECT_BY_ID);
@@ -102,7 +102,7 @@ public class DirecaoDAO {
         pstUpdate.executeUpdate();
     }
 
-    public void delete(int id) throws SQLException {
+    public void delete(long id) throws SQLException {
         pstDelete.setLong(1, id);
         pstDelete.executeUpdate();
     }
