@@ -4,34 +4,31 @@ import database.dao.ReplicacaoProcessoDAO;
 import database.model.TB_REPLICACAO_PROCESSO;
 
 import javax.swing.*;
-import java.awt.*;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 public class TelaReplicacaoProcessoView extends JFrame {
 
-    private enum ModoTela {NENHUM, INSERT, UPDATE}
+    private enum ModoTela { NENHUM, INSERT, UPDATE }
+
     private ModoTela modoTela = ModoTela.NENHUM;
 
-    private final Connection conn;
-    private final ReplicacaoProcessoDAO dao;
+    private final ReplicacaoProcessoDAO processoDao;
 
     private JTextField txfId;
     private JTextField txfProcesso;
     private JTextField txfDescricao;
-
     private JCheckBox chkHabilitado;
 
-    private JButton btnSavar;
+    private JButton btnSalvar;
     private JButton btnAdicionar;
     private JButton btnBuscar;
     private JButton btnExcluir;
 
-    public TelaReplicacaoProcessoView(Connection conn) throws SQLException {
-        this.conn = conn;
-        this.dao = new ReplicacaoProcessoDAO(conn);
+    public TelaReplicacaoProcessoView(Connection conexao) throws SQLException {
+        this.processoDao = new ReplicacaoProcessoDAO(conexao);
 
-        setTitle("Cadastro de Processos");
+        setTitle("Cadastro de processos");
         setSize(620, 320);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -40,17 +37,17 @@ public class TelaReplicacaoProcessoView extends JFrame {
 
         btnBuscar = new JButton("BUSCAR");
         btnAdicionar = new JButton("ADICIONAR");
-        btnSavar = new JButton("SALVAR");
+        btnSalvar = new JButton("SALVAR");
         btnExcluir = new JButton("EXCLUIR");
 
         btnBuscar.setBounds(10, 10, 130, 30);
         btnAdicionar.setBounds(150, 10, 130, 30);
-        btnSavar.setBounds(290, 10, 130, 30);
+        btnSalvar.setBounds(290, 10, 130, 30);
         btnExcluir.setBounds(430, 10, 130, 30);
 
         getContentPane().add(btnBuscar);
         getContentPane().add(btnAdicionar);
-        getContentPane().add(btnSavar);
+        getContentPane().add(btnSalvar);
         getContentPane().add(btnExcluir);
 
         JLabel lblId = new JLabel("ID:");
@@ -85,128 +82,176 @@ public class TelaReplicacaoProcessoView extends JFrame {
         txfProcesso.setEnabled(false);
         txfDescricao.setEnabled(false);
         chkHabilitado.setSelected(false);
-        btnSavar.setEnabled(false);
+        chkHabilitado.setEnabled(false);
+        btnSalvar.setEnabled(false);
         btnExcluir.setEnabled(false);
 
-        btnAdicionar.addActionListener(
-                e -> {
-                    modoTela = ModoTela.INSERT;
+        btnAdicionar.addActionListener(event -> {
+            modoTela = ModoTela.INSERT;
 
-                    txfId.setText("");
-                    txfProcesso.setText("");
-                    txfDescricao.setText("");
-                    chkHabilitado.setSelected(true);
+            txfId.setText("");
+            txfProcesso.setText("");
+            txfDescricao.setText("");
+            chkHabilitado.setSelected(true);
 
-                    txfId.setEnabled(true);
-                    txfProcesso.setEnabled(true);
-                    txfDescricao.setEnabled(true);
-                    chkHabilitado.setEnabled(false);
-                    btnSavar.setEnabled(true);
-                    btnExcluir.setEnabled(false);
+            txfId.setEnabled(false);
+            txfProcesso.setEnabled(true);
+            txfDescricao.setEnabled(true);
+            chkHabilitado.setEnabled(true);
+            btnSalvar.setEnabled(true);
+            btnExcluir.setEnabled(false);
+        });
+
+        btnSalvar.addActionListener(event -> {
+            try {
+                if (txfProcesso.getText().trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Informe o nome do processo.",
+                            "Atenção",
+                            JOptionPane.WARNING_MESSAGE
+                    );
+                    return;
                 }
-        );
 
-        btnSavar.addActionListener(
-                e -> {
-                    try {
-                        if (txfProcesso.getText().trim().isEmpty()) {
-                            JOptionPane.showMessageDialog(null, "Informe o processo.");
-                            return;
-                        }
+                TB_REPLICACAO_PROCESSO processo = new TB_REPLICACAO_PROCESSO();
+                processo.setProcesso(txfProcesso.getText().trim());
+                processo.setDescricao(txfDescricao.getText().trim());
+                processo.setHabilitado(chkHabilitado.isSelected());
 
-                        TB_REPLICACAO_PROCESSO p = new TB_REPLICACAO_PROCESSO();
-                        p.setProcesso(txfProcesso.getText().trim());
-                        p.setDescricao(txfDescricao.getText().trim());
-                        p.setHabilitado(chkHabilitado.isSelected());
-
-                        if (modoTela == ModoTela.INSERT) {
-                            dao.insert(p);
-                            JOptionPane.showMessageDialog(this, "Processo inserido com sucesso.");
-                        } else if (modoTela == ModoTela.UPDATE) {
-                            if (txfId.getText().trim().isEmpty()) {
-                                JOptionPane.showMessageDialog(this, "Informe o ID do processo a ser atualizado.");
-                                return;
-                            }
-                            p.setId(Integer.parseInt(txfId.getText().trim()));
-                            dao.update(p);
-                            JOptionPane.showMessageDialog(this, "Processo atualizado com sucesso.");
-                        } else {
-                            JOptionPane.showMessageDialog(this, "Clique em ADICIONAR ou BUSCAR para iniciar uma operação.");
-                            return;
-                        }
-
-                        modoTela = ModoTela.NENHUM;
-                        txfProcesso.setEnabled(false);
-                        txfDescricao.setEnabled(false);
-                        chkHabilitado.setEnabled(false);
-                        btnSavar.setEnabled(false);
-
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        JOptionPane.showMessageDialog(this, "Erro ao salvar: " + ex.getMessage());
+                if (modoTela == ModoTela.INSERT) {
+                    processoDao.insert(processo);
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Processo cadastrado com sucesso.",
+                            "Sucesso",
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
+                } else if (modoTela == ModoTela.UPDATE) {
+                    if (txfId.getText().trim().isEmpty()) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Não foi possível identificar o processo para atualização.",
+                                "Erro",
+                                JOptionPane.ERROR_MESSAGE
+                        );
+                        return;
                     }
+                    processo.setId(Long.parseLong(txfId.getText().trim()));
+                    processoDao.update(processo);
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Processo atualizado com sucesso.",
+                            "Sucesso",
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
+                } else {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Use ADICIONAR ou BUSCAR antes de salvar.",
+                            "Atenção",
+                            JOptionPane.WARNING_MESSAGE
+                    );
+                    return;
                 }
-        );
 
-        btnExcluir.addActionListener(
-                e -> {
-                    try {
-                        if (txfId.getText().trim().isEmpty()) {
-                            JOptionPane.showMessageDialog(this, "Informe o ID do processo a ser excluído.");
-                            return;
-                        }
+                modoTela = ModoTela.NENHUM;
+                txfProcesso.setEnabled(false);
+                txfDescricao.setEnabled(false);
+                chkHabilitado.setEnabled(false);
+                btnSalvar.setEnabled(false);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Não foi possível salvar o processo: " + ex.getMessage(),
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
 
-                        int op = JOptionPane.showConfirmDialog(this, "Deseja realmente excluir o processo?", "Confirmar Exclusão", JOptionPane.YES_NO_OPTION);
-
-                        if (op != JOptionPane.YES_OPTION) return;
-
-                        long id = Long.parseLong(txfId.getText().trim());
-                        dao.delete(id);
-                        JOptionPane.showMessageDialog(this, "Processo excluído com sucesso.");
-
-                        modoTela = ModoTela.NENHUM;
-                        txfId.setText("");
-                        txfProcesso.setText("");
-                        txfDescricao.setText("");
-                        chkHabilitado.setSelected(false);
-
-                        txfProcesso.setEnabled(false);
-                        txfDescricao.setEnabled(false);
-                        chkHabilitado.setEnabled(false);
-                        btnSavar.setEnabled(false);
-                        btnExcluir.setEnabled(false);
-
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        JOptionPane.showMessageDialog(this, "Erro ao excluir: " + ex.getMessage());
-                    }
+        btnExcluir.addActionListener(event -> {
+            try {
+                if (txfId.getText().trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Selecione um processo antes de excluí-lo.",
+                            "Atenção",
+                            JOptionPane.WARNING_MESSAGE
+                    );
+                    return;
                 }
-        );
 
-        btnBuscar.addActionListener(
-                b -> {
-                    try {
-                        ConsultaProcessoDialog dialog = new ConsultaProcessoDialog(this, dao);
-                        dialog.setVisible(true);
-                        TB_REPLICACAO_PROCESSO selecionado = dialog.getSelecionado();
-
-                        if (selecionado == null) return;
-
-                        txfId.setText(String.valueOf(selecionado.getId()));
-                        txfProcesso.setText(selecionado.getProcesso());
-                        txfDescricao.setText(selecionado.getDescricao());
-                        chkHabilitado.setSelected(selecionado.isHabilitado());
-
-                        txfProcesso.setEnabled(true);
-                        txfDescricao.setEnabled(true);
-                        chkHabilitado.setEnabled(true);
-                        btnSavar.setEnabled(true);
-                        btnExcluir.setEnabled(true);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        JOptionPane.showMessageDialog(this, "Erro ao buscar: " + ex.getMessage());
-                    }
+                int opcao = JOptionPane.showConfirmDialog(
+                        this,
+                        "Deseja realmente excluir o processo?",
+                        "Confirmar exclusão",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE
+                );
+                if (opcao != JOptionPane.YES_OPTION) {
+                    return;
                 }
-        );
+
+                long id = Long.parseLong(txfId.getText().trim());
+                processoDao.delete(id);
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Processo excluído com sucesso.",
+                        "Sucesso",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+
+                modoTela = ModoTela.NENHUM;
+                txfId.setText("");
+                txfProcesso.setText("");
+                txfDescricao.setText("");
+                chkHabilitado.setSelected(false);
+
+                txfProcesso.setEnabled(false);
+                txfDescricao.setEnabled(false);
+                chkHabilitado.setEnabled(false);
+                btnSalvar.setEnabled(false);
+                btnExcluir.setEnabled(false);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Não foi possível excluir o processo: " + ex.getMessage(),
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
+
+        btnBuscar.addActionListener(event -> {
+            try {
+                ConsultaProcessoDialog dialogo = new ConsultaProcessoDialog(this, processoDao);
+                dialogo.setVisible(true);
+                TB_REPLICACAO_PROCESSO processoSelecionado = dialogo.getSelecionado();
+
+                if (processoSelecionado == null) {
+                    return;
+                }
+
+                modoTela = ModoTela.UPDATE;
+                txfId.setText(String.valueOf(processoSelecionado.getId()));
+                txfProcesso.setText(processoSelecionado.getProcesso());
+                txfDescricao.setText(processoSelecionado.getDescricao());
+                chkHabilitado.setSelected(processoSelecionado.isHabilitado());
+
+                txfProcesso.setEnabled(true);
+                txfDescricao.setEnabled(true);
+                chkHabilitado.setEnabled(true);
+                btnSalvar.setEnabled(true);
+                btnExcluir.setEnabled(true);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Não foi possível buscar processos: " + ex.getMessage(),
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
     }
 }

@@ -6,45 +6,50 @@ import database.model.TB_REPLICACAO_DIRECAO;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.SQLException;
-import java.util.ArrayList;
 
 public class ConsultaDirecaoDialog extends JDialog {
 
-    private JTable table;
-    private JButton btnSelecionar;
-    private JButton btnCancelar;
+    private final JTable tabela;
+    private final JButton btnSelecionar;
+    private final JButton btnCancelar;
 
     private TB_REPLICACAO_DIRECAO selecionado;
 
-    public ConsultaDirecaoDialog(Frame parent, DirecaoDAO dao) throws Exception {
-        super(parent, "Consulta de Direção", true);
+    public ConsultaDirecaoDialog(Frame parent, DirecaoDAO direcaoDao) throws SQLException {
+        super(parent, "Consulta de direções", true);
         setSize(900, 420);
         setLocationRelativeTo(parent);
         setLayout(null);
 
-        DefaultTableModel model = new DefaultTableModel();
-        model.addColumn("ID");
-        model.addColumn("PROCESSO_ID");
-        model.addColumn("ORIGEM");
-        model.addColumn("DESTINO");
-        model.addColumn("HABILITADO");
+        DefaultTableModel modelo = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        modelo.addColumn("ID");
+        modelo.addColumn("ID do processo");
+        modelo.addColumn("Origem");
+        modelo.addColumn("Destino");
+        modelo.addColumn("Habilitado");
 
-        ArrayList<TB_REPLICACAO_DIRECAO> lista = dao.selectAll();
-        for (TB_REPLICACAO_DIRECAO d : lista) {
-            model.addRow(new Object[]{
-                    d.getId(),
-                    d.getProcesso_id(),
-                    d.getDirecao_origem(),
-                    d.getDirecao_destino(),
-                    d.isHabilitado()
+        for (TB_REPLICACAO_DIRECAO direcao : direcaoDao.selectAll()) {
+            modelo.addRow(new Object[]{
+                    direcao.getId(),
+                    direcao.getProcesso_id(),
+                    direcao.getDirecao_origem(),
+                    direcao.getDirecao_destino(),
+                    direcao.isHabilitado()
             });
         }
 
-        table = new JTable(model);
-        JScrollPane scroll = new JScrollPane(table);
-        scroll.setBounds(10, 10, 860, 300);
-        add(scroll);
+        tabela = new JTable(modelo);
+        JScrollPane scrollPane = new JScrollPane(tabela);
+        scrollPane.setBounds(10, 10, 860, 300);
+        add(scrollPane);
 
         btnSelecionar = new JButton("SELECIONAR");
         btnSelecionar.setBounds(10, 320, 140, 30);
@@ -54,35 +59,50 @@ public class ConsultaDirecaoDialog extends JDialog {
         btnCancelar.setBounds(160, 320, 140, 30);
         add(btnCancelar);
 
-        btnCancelar.addActionListener(e -> {
+        btnCancelar.addActionListener(event -> {
             selecionado = null;
             dispose();
         });
 
-        btnSelecionar.addActionListener(e -> {
-            int row = table.getSelectedRow();
-
-            if (row == -1) {
-                JOptionPane.showMessageDialog(this, "Selecione uma linha.");
+        btnSelecionar.addActionListener(event -> {
+            int linhaSelecionada = tabela.getSelectedRow();
+            if (linhaSelecionada == -1) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Selecione um registro.",
+                        "Atenção",
+                        JOptionPane.WARNING_MESSAGE
+                );
                 return;
             }
 
-            long id = Long.parseLong(table.getValueAt(row, 0).toString());
-            TB_REPLICACAO_DIRECAO d = null;
-
+            long id = Long.parseLong(tabela.getValueAt(linhaSelecionada, 0).toString());
             try {
-                d = dao.selectById(id);
+                selecionado = direcaoDao.selectById(id);
+                if (selecionado == null) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "O registro selecionado não foi encontrado.",
+                            "Erro",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
+                dispose();
             } catch (SQLException ex) {
-                throw new RuntimeException(ex);
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Não foi possível carregar o registro: " + ex.getMessage(),
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE
+                );
             }
-
-            selecionado = d;
-            dispose();
         });
 
-        table.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                if (evt.getClickCount() == 2) {
+        tabela.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent event) {
+                if (event.getClickCount() == 2) {
                     btnSelecionar.doClick();
                 }
             }

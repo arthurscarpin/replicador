@@ -90,8 +90,8 @@ public class DirecaoDAO {
     }
 
     public void update(TB_REPLICACAO_DIRECAO tb) throws SQLException {
-        pstUpdate.setString(1, tb.getDirecao_destino());
-        pstUpdate.setString(2, tb.getDirecao_origem());
+        pstUpdate.setString(1, tb.getDirecao_origem());
+        pstUpdate.setString(2, tb.getDirecao_destino());
         pstUpdate.setString(3, tb.getUsuario_origem());
         pstUpdate.setString(4, tb.getUsuario_destino());
         pstUpdate.setString(5, tb.getSenha_origem());

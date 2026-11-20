@@ -1,6 +1,7 @@
 package view;
 
 import database.dao.DirecaoDAO;
+import database.dao.ReplicacaoProcessoDAO;
 import database.model.TB_REPLICACAO_DIRECAO;
 import database.model.TB_REPLICACAO_PROCESSO;
 
@@ -11,36 +12,33 @@ import java.sql.SQLException;
 
 public class TelaReplicacaoDirecaoView extends JFrame {
 
-    private enum ModoTela {NENHUM, INSERT, UPDATE}
-    private TelaReplicacaoDirecaoView.ModoTela modoTela = TelaReplicacaoDirecaoView.ModoTela.NENHUM;
+    private enum ModoTela { NENHUM, INSERT, UPDATE }
 
-    private final Connection conn;
-    private final DirecaoDAO dao;
+    private ModoTela modoTela = ModoTela.NENHUM;
+
+    private final DirecaoDAO direcaoDao;
+    private final ReplicacaoProcessoDAO processoDao;
 
     private JTextField txfId;
-
     private JComboBox<TB_REPLICACAO_PROCESSO> cbProcesso;
-
-    private JTextField txfOrigem;
-    private JTextField txfDestino;
+    private JTextField txfDirecaoOrigem;
+    private JTextField txfDirecaoDestino;
     private JTextField txfUsuarioOrigem;
     private JTextField txfUsuarioDestino;
-    private JTextField txfSenhaOrigem;
-    private JTextField txfSenhaDestino;
-
+    private JPasswordField txpSenhaOrigem;
+    private JPasswordField txpSenhaDestino;
     private JCheckBox chkHabilitado;
 
-
-    private JButton btnSavar;
+    private JButton btnSalvar;
     private JButton btnAdicionar;
     private JButton btnBuscar;
     private JButton btnExcluir;
 
-    public TelaReplicacaoDirecaoView(Connection conn) throws SQLException {
-        this.conn = conn;
-        this.dao = new DirecaoDAO(conn);
+    public TelaReplicacaoDirecaoView(Connection conexao) throws SQLException {
+        this.direcaoDao = new DirecaoDAO(conexao);
+        this.processoDao = new ReplicacaoProcessoDAO(conexao);
 
-        setTitle("Cadastro de Processos");
+        setTitle("Cadastro de direções");
         setSize(760, 490);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -49,17 +47,17 @@ public class TelaReplicacaoDirecaoView extends JFrame {
 
         btnBuscar = new JButton("BUSCAR");
         btnAdicionar = new JButton("ADICIONAR");
-        btnSavar = new JButton("SALVAR");
+        btnSalvar = new JButton("SALVAR");
         btnExcluir = new JButton("EXCLUIR");
 
         btnBuscar.setBounds(10, 10, 130, 30);
         btnAdicionar.setBounds(150, 10, 130, 30);
-        btnSavar.setBounds(290, 10, 130, 30);
+        btnSalvar.setBounds(290, 10, 130, 30);
         btnExcluir.setBounds(430, 10, 130, 30);
 
         getContentPane().add(btnBuscar);
         getContentPane().add(btnAdicionar);
-        getContentPane().add(btnSavar);
+        getContentPane().add(btnSalvar);
         getContentPane().add(btnExcluir);
 
         JLabel lblId = new JLabel("ID:");
@@ -83,15 +81,15 @@ public class TelaReplicacaoDirecaoView extends JFrame {
         lblOrigem.setFont(lblOrigem.getFont().deriveFont(Font.BOLD));
         getContentPane().add(lblOrigem);
 
-        JLabel lblDirecaoOrigem = new JLabel("DIRECAO_ORIGEM:");
+        JLabel lblDirecaoOrigem = new JLabel("DIREÇÃO DE ORIGEM:");
         lblDirecaoOrigem.setBounds(10, 185, 140, 25);
         getContentPane().add(lblDirecaoOrigem);
 
-        txfOrigem = new JTextField();
-        txfOrigem.setBounds(160, 185, 560, 25);
-        getContentPane().add(txfOrigem);
+        txfDirecaoOrigem = new JTextField();
+        txfDirecaoOrigem.setBounds(160, 185, 560, 25);
+        getContentPane().add(txfDirecaoOrigem);
 
-        JLabel lblUsuarioOrigem = new JLabel("USUÁRIO ORIGEM:");
+        JLabel lblUsuarioOrigem = new JLabel("USUÁRIO DE ORIGEM:");
         lblUsuarioOrigem.setBounds(10, 220, 140, 25);
         getContentPane().add(lblUsuarioOrigem);
 
@@ -99,28 +97,28 @@ public class TelaReplicacaoDirecaoView extends JFrame {
         txfUsuarioOrigem.setBounds(160, 220, 560, 25);
         getContentPane().add(txfUsuarioOrigem);
 
-        JLabel lblSenhaOrigem = new JLabel("SENHA_ORIGEM:");
+        JLabel lblSenhaOrigem = new JLabel("SENHA DE ORIGEM:");
         lblSenhaOrigem.setBounds(10, 255, 140, 25);
         getContentPane().add(lblSenhaOrigem);
 
-        txfSenhaOrigem = new JTextField();
-        txfSenhaOrigem.setBounds(160, 255, 560, 25);
-        getContentPane().add(txfSenhaOrigem);
+        txpSenhaOrigem = new JPasswordField();
+        txpSenhaOrigem.setBounds(160, 255, 560, 25);
+        getContentPane().add(txpSenhaOrigem);
 
         JLabel lblDestino = new JLabel("DESTINO:");
         lblDestino.setBounds(10, 300, 200, 25);
         lblDestino.setFont(lblDestino.getFont().deriveFont(Font.BOLD));
         getContentPane().add(lblDestino);
 
-        JLabel lblDirecaoDestino = new JLabel("DIRECAO_DESTINO:");
+        JLabel lblDirecaoDestino = new JLabel("DIREÇÃO DE DESTINO:");
         lblDirecaoDestino.setBounds(10, 335, 140, 25);
         getContentPane().add(lblDirecaoDestino);
 
-        txfDestino = new JTextField();
-        txfDestino.setBounds(160, 335, 560, 25);
-        getContentPane().add(txfDestino);
+        txfDirecaoDestino = new JTextField();
+        txfDirecaoDestino.setBounds(160, 335, 560, 25);
+        getContentPane().add(txfDirecaoDestino);
 
-        JLabel lblUsuarioDestino = new JLabel("USUÁRIO DESTINO:");
+        JLabel lblUsuarioDestino = new JLabel("USUÁRIO DE DESTINO:");
         lblUsuarioDestino.setBounds(10, 370, 140, 25);
         getContentPane().add(lblUsuarioDestino);
 
@@ -128,238 +126,239 @@ public class TelaReplicacaoDirecaoView extends JFrame {
         txfUsuarioDestino.setBounds(160, 370, 280, 25);
         getContentPane().add(txfUsuarioDestino);
 
-        JLabel lblSenhaDestino = new JLabel("SENHA_DESTINO:");
+        JLabel lblSenhaDestino = new JLabel("SENHA DE DESTINO:");
         lblSenhaDestino.setBounds(450, 370, 120, 25);
         getContentPane().add(lblSenhaDestino);
 
-        txfSenhaDestino = new JTextField();
-        txfSenhaDestino.setBounds(570, 370, 150, 25);
-        getContentPane().add(txfSenhaDestino);
+        txpSenhaDestino = new JPasswordField();
+        txpSenhaDestino.setBounds(570, 370, 150, 25);
+        getContentPane().add(txpSenhaDestino);
 
         chkHabilitado = new JCheckBox("HABILITADO:");
         chkHabilitado.setBounds(10, 405, 140, 25);
         getContentPane().add(chkHabilitado);
 
+        for (TB_REPLICACAO_PROCESSO processo : processoDao.selectAll()) {
+            cbProcesso.addItem(processo);
+        }
+
         txfId.setEnabled(false);
-        cbProcesso.setEnabled(false);
-        chkHabilitado.setEnabled(false);
-        txfOrigem.setEnabled(false);
-        txfUsuarioOrigem.setEnabled(false);
-        txfSenhaOrigem.setEnabled(false);
-        txfDestino.setEnabled(false);
-        txfUsuarioDestino.setEnabled(false);
-        txfSenhaDestino.setEnabled(false);
-        btnSavar.setEnabled(false);
+        setCamposHabilitados(false);
+        btnSalvar.setEnabled(false);
         btnExcluir.setEnabled(false);
 
-        btnAdicionar.addActionListener(e -> {
+        btnAdicionar.addActionListener(event -> {
             modoTela = ModoTela.INSERT;
-
-            txfId.setText("");
-
+            limparCampos();
             if (cbProcesso.getItemCount() > 0) {
                 cbProcesso.setSelectedIndex(0);
             }
-
             chkHabilitado.setSelected(true);
-
-            txfOrigem.setText("");
-            txfUsuarioOrigem.setText("");
-            txfSenhaOrigem.setText("");
-            txfDestino.setText("");
-            txfUsuarioDestino.setText("");
-            txfSenhaDestino.setText("");
-
-            cbProcesso.setEnabled(true);
-            chkHabilitado.setEnabled(true);
-            txfOrigem.setEnabled(true);
-            txfUsuarioOrigem.setEnabled(true);
-            txfSenhaOrigem.setEnabled(true);
-            txfDestino.setEnabled(true);
-            txfUsuarioDestino.setEnabled(true);
-            txfSenhaDestino.setEnabled(true);
-
-            btnSavar.setEnabled(true);
-            btnExcluir.setEnabled(true);
+            txfId.setEnabled(false);
+            setCamposHabilitados(true);
+            btnSalvar.setEnabled(true);
+            btnExcluir.setEnabled(false);
         });
 
-        btnSavar.addActionListener(e -> {
+        btnSalvar.addActionListener(event -> {
             try {
                 if (cbProcesso.getSelectedItem() == null) {
-                    JOptionPane.showMessageDialog(this, "Informe o PROCESSO.");
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Selecione um processo.",
+                            "Atenção",
+                            JOptionPane.WARNING_MESSAGE
+                    );
                     return;
                 }
 
-                if (txfOrigem.getText().trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Informe a DIRECAO_ORIGEM.");
+                if (txfDirecaoOrigem.getText().trim().isEmpty()
+                        || txfDirecaoDestino.getText().trim().isEmpty()
+                        || txfUsuarioOrigem.getText().trim().isEmpty()
+                        || txfUsuarioDestino.getText().trim().isEmpty()
+                        || txpSenhaOrigem.getPassword().length == 0
+                        || txpSenhaDestino.getPassword().length == 0) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Preencha as direções, os usuários e as senhas de origem e destino.",
+                            "Atenção",
+                            JOptionPane.WARNING_MESSAGE
+                    );
                     return;
                 }
 
-                if (txfDestino.getText().trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Informe a DIRECAO_DESTINO.");
-                    return;
-                }
-
-                if (txfSenhaOrigem.getText().trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Informe a SENHA_ORIGEM.");
-                    return;
-                }
-
-                if (txfSenhaDestino.getText().trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Informe a SENHA_DESTINO.");
-                    return;
-                }
-
-                if (txfUsuarioOrigem.getText().trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Informe o USUÁRIO ORIGEM.");
-                    return;
-                }
-
-                if (txfUsuarioDestino.getText().trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Informe o USUÁRIO DESTINO.");
-                    return;
-                }
-
-                TB_REPLICACAO_PROCESSO pSel = (TB_REPLICACAO_PROCESSO) cbProcesso.getSelectedItem();
-
-                TB_REPLICACAO_DIRECAO d = new TB_REPLICACAO_DIRECAO();
-                d.setProcesso_id(pSel.getId());
-                d.setHabilitado(chkHabilitado.isSelected());
-                d.setDirecao_origem(txfOrigem.getText().trim());
-                d.setDirecao_destino(txfDestino.getText().trim());
-                d.setUsuario_origem(txfUsuarioOrigem.getText().trim());
-                d.setUsuario_destino(txfUsuarioDestino.getText().trim());
-                d.setSenha_origem(txfSenhaOrigem.getText().trim());
-                d.setSenha_destino(txfSenhaDestino.getText().trim());
+                TB_REPLICACAO_PROCESSO processoSelecionado =
+                        (TB_REPLICACAO_PROCESSO) cbProcesso.getSelectedItem();
+                TB_REPLICACAO_DIRECAO direcao = new TB_REPLICACAO_DIRECAO();
+                direcao.setProcesso_id(processoSelecionado.getId());
+                direcao.setHabilitado(chkHabilitado.isSelected());
+                direcao.setDirecao_origem(txfDirecaoOrigem.getText().trim());
+                direcao.setDirecao_destino(txfDirecaoDestino.getText().trim());
+                direcao.setUsuario_origem(txfUsuarioOrigem.getText().trim());
+                direcao.setUsuario_destino(txfUsuarioDestino.getText().trim());
+                direcao.setSenha_origem(new String(txpSenhaOrigem.getPassword()).trim());
+                direcao.setSenha_destino(new String(txpSenhaDestino.getPassword()).trim());
 
                 if (modoTela == ModoTela.INSERT) {
-                    dao.insert(d);
-                    JOptionPane.showMessageDialog(this, "Direção cadastrada!");
+                    direcaoDao.insert(direcao);
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Direção cadastrada com sucesso.",
+                            "Sucesso",
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
                 } else if (modoTela == ModoTela.UPDATE) {
                     if (txfId.getText().trim().isEmpty()) {
-                        JOptionPane.showMessageDialog(this, "Informe o ID da Direção.");
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Não foi possível identificar a direção para atualização.",
+                                "Erro",
+                                JOptionPane.ERROR_MESSAGE
+                        );
                         return;
                     }
-
-                    d.setId(Integer.parseInt(txfId.getText()));
-                    dao.update(d);
-                    JOptionPane.showMessageDialog(this, "Direção atualizada!");
+                    direcao.setId(Long.parseLong(txfId.getText().trim()));
+                    direcaoDao.update(direcao);
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Direção atualizada com sucesso.",
+                            "Sucesso",
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
                 } else {
-                    JOptionPane.showMessageDialog(this, "Clique em ADICIONAR ou BUSCAR para cadastrar ou atualizar uma direção.");
-                }
-
-                modoTela = ModoTela.NENHUM;
-
-                txfId.setEnabled(false);
-                cbProcesso.setEnabled(false);
-                chkHabilitado.setEnabled(false);
-                txfOrigem.setEnabled(false);
-                txfUsuarioOrigem.setEnabled(false);
-                txfSenhaOrigem.setEnabled(false);
-                txfDestino.setEnabled(false);
-                txfUsuarioDestino.setEnabled(false);
-                txfSenhaDestino.setEnabled(false);
-                btnSavar.setEnabled(false);
-                btnExcluir.setEnabled(false);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Erro ao salvar: " + ex.getMessage());
-            }
-        });
-
-        btnExcluir.addActionListener(e -> {
-            try {
-                if (txfId.getText().trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Informe o ID da Direção.");
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Use ADICIONAR ou BUSCAR antes de salvar.",
+                            "Atenção",
+                            JOptionPane.WARNING_MESSAGE
+                    );
                     return;
                 }
 
-                int op = JOptionPane.showConfirmDialog(this, "Deseja buscar a direção com ID " + txfId.getText().trim() + "?", "Confirmação", JOptionPane.YES_NO_OPTION);
-                if (op != JOptionPane.YES_OPTION) return;
-
-                long id = Long.parseLong(txfId.getText());
-                dao.delete(id);
-                JOptionPane.showMessageDialog(this, "Processo excluído com sucesso!");
-
                 modoTela = ModoTela.NENHUM;
-
-                txfId.setText("");
-
-                if (cbProcesso.getItemCount() > 0) {
-                    cbProcesso.setSelectedIndex(0);
-                }
-
-                chkHabilitado.setSelected(false);
-
-                txfOrigem.setText("");
-                txfUsuarioOrigem.setText("");
-                txfSenhaOrigem.setText("");
-                txfDestino.setText("");
-                txfUsuarioDestino.setText("");
-                txfSenhaDestino.setText("");
-
-                cbProcesso.setEnabled(false);
-                chkHabilitado.setEnabled(false);
-                txfOrigem.setEnabled(false);
-                txfUsuarioOrigem.setEnabled(false);
-                txfSenhaOrigem.setEnabled(false);
-                txfDestino.setEnabled(false);
-                txfUsuarioDestino.setEnabled(false);
-                txfSenhaDestino.setEnabled(false);
-
-                btnSavar.setEnabled(false);
+                txfId.setEnabled(false);
+                setCamposHabilitados(false);
+                btnSalvar.setEnabled(false);
                 btnExcluir.setEnabled(false);
-
             } catch (Exception ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Erro ao buscar: " + ex.getMessage());
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Não foi possível salvar a direção: " + ex.getMessage(),
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE
+                );
             }
         });
 
-        btnBuscar.addActionListener(e -> {
+        btnExcluir.addActionListener(event -> {
             try {
-                ConsultaDirecaoDialog dlg = new ConsultaDirecaoDialog(this, dao);
-                dlg.setVisible(true);
+                if (txfId.getText().trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Selecione uma direção antes de excluí-la.",
+                            "Atenção",
+                            JOptionPane.WARNING_MESSAGE
+                    );
+                    return;
+                }
 
-                TB_REPLICACAO_DIRECAO sel =dlg.getSelecionado();
-                if (sel == null) return;
+                int opcao = JOptionPane.showConfirmDialog(
+                        this,
+                        "Deseja realmente excluir a direção selecionada?",
+                        "Confirmar exclusão",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE
+                );
+                if (opcao != JOptionPane.YES_OPTION) {
+                    return;
+                }
+
+                direcaoDao.delete(Long.parseLong(txfId.getText().trim()));
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Direção excluída com sucesso.",
+                        "Sucesso",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+
+                modoTela = ModoTela.NENHUM;
+                limparCampos();
+                txfId.setEnabled(false);
+                setCamposHabilitados(false);
+                btnSalvar.setEnabled(false);
+                btnExcluir.setEnabled(false);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Não foi possível excluir a direção: " + ex.getMessage(),
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
+
+        btnBuscar.addActionListener(event -> {
+            try {
+                ConsultaDirecaoDialog dialogo = new ConsultaDirecaoDialog(this, direcaoDao);
+                dialogo.setVisible(true);
+
+                TB_REPLICACAO_DIRECAO direcao = dialogo.getSelecionado();
+                if (direcao == null) {
+                    return;
+                }
 
                 modoTela = ModoTela.UPDATE;
+                txfId.setText(String.valueOf(direcao.getId()));
+                chkHabilitado.setSelected(direcao.isHabilitado());
+                txfDirecaoOrigem.setText(direcao.getDirecao_origem());
+                txfUsuarioOrigem.setText(direcao.getUsuario_origem());
+                txpSenhaOrigem.setText(direcao.getSenha_origem());
+                txfDirecaoDestino.setText(direcao.getDirecao_destino());
+                txfUsuarioDestino.setText(direcao.getUsuario_destino());
+                txpSenhaDestino.setText(direcao.getSenha_destino());
 
-                txfId.setText(String.valueOf(sel.getId()));
-                chkHabilitado.setSelected(sel.isHabilitado());
-                cbProcesso.setSelectedItem(sel);
-                txfOrigem.setText(sel.getDirecao_origem());
-                txfUsuarioOrigem.setText(sel.getUsuario_origem());
-                txfSenhaOrigem.setText(sel.getSenha_origem());
-                txfDestino.setText(sel.getDirecao_destino());
-                txfUsuarioDestino.setText(sel.getUsuario_destino());
-                txfSenhaDestino.setText(sel.getSenha_destino());
-
-                long id = sel.getProcesso_id();
-
-                for (int i = 0; i < cbProcesso.getItemCount(); i++) {
-                    TB_REPLICACAO_PROCESSO item = cbProcesso.getItemAt(i);
-                    if (item.getId() == id) {
-                        cbProcesso.setSelectedIndex(i);
+                for (int indice = 0; indice < cbProcesso.getItemCount(); indice++) {
+                    TB_REPLICACAO_PROCESSO processo = cbProcesso.getItemAt(indice);
+                    if (processo.getId() == direcao.getProcesso_id()) {
+                        cbProcesso.setSelectedIndex(indice);
                         break;
                     }
                 }
 
-                cbProcesso.setEnabled(true);
-                chkHabilitado.setEnabled(true);
-                txfOrigem.setEnabled(true);
-                txfUsuarioOrigem.setEnabled(true);
-                txfSenhaOrigem.setEnabled(true);
-                txfDestino.setEnabled(true);
-                txfUsuarioDestino.setEnabled(true);
-                txfSenhaDestino.setEnabled(true);
-                btnSavar.setEnabled(true);
+                txfId.setEnabled(false);
+                setCamposHabilitados(true);
+                btnSalvar.setEnabled(true);
                 btnExcluir.setEnabled(true);
             } catch (Exception ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Erro ao buscar: " + ex.getMessage());
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Não foi possível buscar direções: " + ex.getMessage(),
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE
+                );
             }
         });
+    }
+
+    private void limparCampos() {
+        txfId.setText("");
+        txfDirecaoOrigem.setText("");
+        txfDirecaoDestino.setText("");
+        txfUsuarioOrigem.setText("");
+        txfUsuarioDestino.setText("");
+        txpSenhaOrigem.setText("");
+        txpSenhaDestino.setText("");
+        chkHabilitado.setSelected(false);
+    }
+
+    private void setCamposHabilitados(boolean habilitado) {
+        cbProcesso.setEnabled(habilitado);
+        chkHabilitado.setEnabled(habilitado);
+        txfDirecaoOrigem.setEnabled(habilitado);
+        txfUsuarioOrigem.setEnabled(habilitado);
+        txpSenhaOrigem.setEnabled(habilitado);
+        txfDirecaoDestino.setEnabled(habilitado);
+        txfUsuarioDestino.setEnabled(habilitado);
+        txpSenhaDestino.setEnabled(habilitado);
     }
 }

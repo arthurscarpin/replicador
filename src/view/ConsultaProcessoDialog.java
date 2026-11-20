@@ -8,33 +8,36 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
+import java.sql.SQLException;
 
 public class ConsultaProcessoDialog extends JDialog {
 
-    private JTable table;
-
-    private JButton btnSelecionar;
-    private JButton btnCancelar;
+    private final JTable tabela;
+    private final JButton btnSelecionar;
+    private final JButton btnCancelar;
 
     private TB_REPLICACAO_PROCESSO selecionado;
 
-    public ConsultaProcessoDialog(JFrame parent, ReplicacaoProcessoDAO dao) throws Exception {
-        super(parent, "Consulta de Processos");
+    public ConsultaProcessoDialog(Frame parent, ReplicacaoProcessoDAO processoDao) throws SQLException {
+        super(parent, "Consulta de processos", true);
         setSize(700, 400);
         setLocationRelativeTo(parent);
         setResizable(false);
         setLayout(null);
 
-        DefaultTableModel model = new DefaultTableModel();
-        model.addColumn("ID");
-        model.addColumn("PROCESSO");
-        model.addColumn("DESCRICAO");
-        model.addColumn("HABILITADO");
+        DefaultTableModel modelo = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        modelo.addColumn("ID");
+        modelo.addColumn("Processo");
+        modelo.addColumn("Descrição");
+        modelo.addColumn("Habilitado");
 
-        ArrayList<TB_REPLICACAO_PROCESSO> lista = dao.selectAll();
-        for (TB_REPLICACAO_PROCESSO processo : lista) {
-            model.addRow(new Object[]{
+        for (TB_REPLICACAO_PROCESSO processo : processoDao.selectAll()) {
+            modelo.addRow(new Object[]{
                     processo.getId(),
                     processo.getProcesso(),
                     processo.getDescricao(),
@@ -42,9 +45,9 @@ public class ConsultaProcessoDialog extends JDialog {
             });
         }
 
-        table = new JTable(model);
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBounds(10, 10, 680, 380);
+        tabela = new JTable(modelo);
+        JScrollPane scrollPane = new JScrollPane(tabela);
+        scrollPane.setBounds(10, 10, 680, 300);
         add(scrollPane);
 
         btnSelecionar = new JButton("SELECIONAR");
@@ -55,34 +58,37 @@ public class ConsultaProcessoDialog extends JDialog {
         btnCancelar.setBounds(160, 320, 140, 30);
         add(btnCancelar);
 
-        table.addMouseListener(new MouseAdapter() {
+        tabela.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
-                if(e.getClickCount() == 2){
+            public void mouseClicked(MouseEvent event) {
+                if (event.getClickCount() == 2) {
                     btnSelecionar.doClick();
                 }
             }
         });
 
-        btnSelecionar.addActionListener(e -> {
-            int row = table.getSelectedRow();
-
-            if (row == -1) {
-                JOptionPane.showMessageDialog(this, "Selecione um registro.");
+        btnSelecionar.addActionListener(event -> {
+            int linhaSelecionada = tabela.getSelectedRow();
+            if (linhaSelecionada == -1) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Selecione um registro.",
+                        "Atenção",
+                        JOptionPane.WARNING_MESSAGE
+                );
                 return;
             }
 
-            TB_REPLICACAO_PROCESSO p = new TB_REPLICACAO_PROCESSO();
-            p.setId(Integer.parseInt(table.getValueAt(row, 0).toString()));
-            p.setProcesso(table.getValueAt(row, 1).toString());
-            p.setDescricao(table.getValueAt(row, 2).toString());
-            p.setHabilitado(Boolean.parseBoolean(table.getValueAt(row, 3).toString()));
-            selecionado = p;
+            TB_REPLICACAO_PROCESSO processo = new TB_REPLICACAO_PROCESSO();
+            processo.setId(Long.parseLong(tabela.getValueAt(linhaSelecionada, 0).toString()));
+            processo.setProcesso(tabela.getValueAt(linhaSelecionada, 1).toString());
+            processo.setDescricao(tabela.getValueAt(linhaSelecionada, 2).toString());
+            processo.setHabilitado(Boolean.parseBoolean(tabela.getValueAt(linhaSelecionada, 3).toString()));
+            selecionado = processo;
             dispose();
         });
 
-
-        btnCancelar.addActionListener(e -> {
+        btnCancelar.addActionListener(event -> {
             selecionado = null;
             dispose();
         });
